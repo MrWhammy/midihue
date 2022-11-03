@@ -1,17 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
-	"sync/atomic"
-
 	"github.com/amimof/huego"
 )
 
 type lamp struct {
 	name    string
 	channel chan uint8
-	val     uint32
 	light   *huego.Light
 }
 
@@ -30,10 +25,11 @@ func (lamp *lamp) SetVal(newVal uint8) {
 func (lamp *lamp) Run() {
 	newVal, ok := lamp.ReadValue()
 	for ok {
-		fmt.Println("Setting ", lamp.name, " to ", newVal)
-		lamp.light.Bri(newVal)
-		fmt.Println("Done ", lamp.name, " to ", newVal)
-		atomic.StoreUint32(&lamp.val, uint32(newVal))
+		if newVal > 0 {
+			lamp.light.Bri(newVal)
+		} else {
+			lamp.light.Off()
+		}
 		newVal, ok = lamp.ReadValue()
 	}
 }
@@ -54,5 +50,5 @@ func (lamp *lamp) Close() {
 }
 
 func (lamp *lamp) String() string {
-	return lamp.name + ": " + strconv.FormatUint(uint64(lamp.val), 10)
+	return lamp.name
 }
